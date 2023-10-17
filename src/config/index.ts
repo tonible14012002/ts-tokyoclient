@@ -1,8 +1,3 @@
-import dotenv from "dotenv";
-
-// Parsing the env file.
-dotenv.config();
-
 export interface IConfig {
   serverHost: string;
   apiKey: string;
@@ -20,12 +15,4 @@ export const getWsServerUrl = (c: IConfig): string => {
     "&name=" +
     c.userName
   );
-};
-
-export const loadConfig = (): IConfig => {
-  return {
-    serverHost: process.env.SERVER_HOST || "localhost:8080",
-    apiKey: process.env.USER_API_KEY || "webuild",
-    userName: process.env.USER_NAME || "noname",
-  };
 };
