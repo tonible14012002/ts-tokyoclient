@@ -1,5 +1,5 @@
 import {CloseEvent, WebSocket} from "ws";
-import {EventConsumer} from "../interfaces/event-consumer";
+import {IEventConsumer} from "../interfaces/event-consumer";
 import {EventType} from "../enums";
 import {Payload, StateEventData} from "../interfaces/event";
 import {Gamepad} from "../interfaces/gamepad";
@@ -8,10 +8,10 @@ import {IConfig, getWsServerUrl} from "../config";
 export class TokyoGameClient implements Gamepad {
   private userId!: number;
   private teamMates!: Record<number, string>;
-  private eventConsumer: EventConsumer;
+  private eventConsumer: IEventConsumer;
   private conn!: WebSocket;
 
-  constructor(credentials: IConfig, eventConsumer: EventConsumer) {
+  constructor(credentials: IConfig, eventConsumer: IEventConsumer) {
     this.eventConsumer = eventConsumer;
     this.conn = new WebSocket(getWsServerUrl(credentials));
 
@@ -40,12 +40,12 @@ export class TokyoGameClient implements Gamepad {
       }
       case EventType.STATE: {
         const value = parsed.data as StateEventData;
-        this.eventConsumer.handleEvent(
-          this,
-          this.userId,
-          this.teamMates,
-          value,
-        );
+        this.eventConsumer.handleEvent({
+          gamepad: this,
+          userId: this.userId,
+          teamMates: this.teamMates,
+          state: value,
+        });
         break;
       }
     }
@@ -78,7 +78,7 @@ export class TokyoGameClient implements Gamepad {
 
   updateTeammates(teamMates: Record<number, string>): void {
     this.teamMates = teamMates;
-    console.log(`Teammates has been updated to ${teamMates}`);
+    console.log(`Teammates has been updated to ${JSON.stringify(teamMates)}`);
   }
 
   close() {
