@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 // Parsing the env file.
 dotenv.config();
 
-interface IConfig {
+export interface IConfig {
   serverHost: string;
   apiKey: string;
   userName: string;

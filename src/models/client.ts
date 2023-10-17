@@ -3,6 +3,7 @@ import {EventConsumer} from "../interfaces/event-consumer";
 import {EventType} from "../enums";
 import {Payload, StateEventData} from "../interfaces/event";
 import {Gamepad} from "../interfaces/gamepad";
+import {IConfig, getWsServerUrl} from "../config";
 
 export class TokyoGameClient implements Gamepad {
   private userId!: number;
@@ -10,9 +11,9 @@ export class TokyoGameClient implements Gamepad {
   private eventConsumer: EventConsumer;
   private conn!: WebSocket;
 
-  constructor(serverUrl: string, eventConsumer: EventConsumer) {
+  constructor(credentials: IConfig, eventConsumer: EventConsumer) {
     this.eventConsumer = eventConsumer;
-    this.conn = new WebSocket(serverUrl);
+    this.conn = new WebSocket(getWsServerUrl(credentials));
 
     this.conn.on("open", this.onOpen.bind(this));
     this.conn.on("message", this.onMessage.bind(this));
