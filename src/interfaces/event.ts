@@ -51,3 +51,8 @@ export interface Payload {
   e: EventType;
   data: any;
 }
+
+export interface PlayerCoordinates {
+  x: number;
+  y: number;
+}
