@@ -10,7 +10,11 @@
  * const randomValue = getRandomFloat(0, 1, 2);
  * console.log(randomValue); // Example output: 0.75
  */
-export function getRandomFloat(min: number, max: number, decimals: number): number {
+export function getRandomFloat(
+  min: number,
+  max: number,
+  decimals: number,
+): number {
   const str = (Math.random() * (max - min) + min).toFixed(decimals);
   return parseFloat(str);
 }

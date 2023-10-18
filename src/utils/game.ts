@@ -6,7 +6,10 @@ import {PlayerCoordinates} from "../interfaces/event";
  * @param {PlayerCoordinates} player2 - Coordinates of the second player.
  * @returns {number} - The Euclidean distance between the two players.
  */
-export function estimateDistance(player1: PlayerCoordinates, player2: PlayerCoordinates): number {
+export function estimateDistance(
+  player1: PlayerCoordinates,
+  player2: PlayerCoordinates,
+): number {
   const deltaX = player1.x - player2.x;
   const deltaY = player1.y - player2.y;
 
@@ -16,14 +19,16 @@ export function estimateDistance(player1: PlayerCoordinates, player2: PlayerCoor
   return distance;
 }
 
-
 /**
  * Calculate the angle (in radians) a player needs to rotate to face the target player.
  * @param {PlayerCoordinates} player - Coordinates of the player.
  * @param {PlayerCoordinates} target - Coordinates of the target player.
  * @returns {number} - The angle (in radians) to rotate.
  */
-export function calculateRotationAngle(player: PlayerCoordinates, target: PlayerCoordinates): number {
+export function calculateRotationAngle(
+  player: PlayerCoordinates,
+  target: PlayerCoordinates,
+): number {
   const deltaX = target.x - player.x;
   const deltaY = target.y - player.y;
 

@@ -1,6 +1,5 @@
 const {
   TokyoGameClient,
-  CustomEventConsumer,
   getRandomFloat,
 } = require("../build");
 
@@ -8,21 +7,27 @@ const {
   const config = {
     serverHost: "localhost:8080",
     apiKey: "webuild0",
-    userName: "antonoob",
+    userName: "h3adhunter",
   };
 
-  // An example implementation for EventConsumer
-  const simpleBot = new CustomEventConsumer();
-  simpleBot.handleEvent = ({gamepad, userId, teamMates, state}) => {
+  // Initialize the Game client instance
+  const client = new TokyoGameClient(config);
+
+  // Define your onMessage callback function
+  client.setOnOpenFn((gamepad) => {
+    console.log("Successfully joined the game.");
+    // Replace your logic here
+  });
+
+  // Define your onMessage callback function
+  client.setOnMessageFn(({gamepad, event}) => {
     gamepad.throttle(1);
     const angle = getRandomFloat(0.1, 1.0, 1) * 2 * Math.PI;
     gamepad.rotate(angle);
-    console.log(`[ID ${userId}] Rotating by ${angle} .`);
+    console.log(`[rotating] by ${angle} .`);
     gamepad.fire();
-  };
-
-  // Pass into Client constructor
-  const client = new TokyoGameClient(config, simpleBot);
+    // Replace with your logic here
+  });
 
   process.on("SIGTERM", () => {
     client.close();
