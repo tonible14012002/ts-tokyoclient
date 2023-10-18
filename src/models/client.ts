@@ -1,58 +1,52 @@
-import {CloseEvent, WebSocket} from "ws";
-import {IEventConsumer} from "../interfaces/event-consumer";
-import {EventType} from "../enums";
-import {Payload, StateEventData} from "../interfaces/event";
+import {CloseEvent, WebSocket, Event} from "ws";
+import {EventKit, OnMessageEvent} from "../interfaces/event";
 import {Gamepad} from "../interfaces/gamepad";
 import {IConfig, getWsServerUrl} from "../config";
 
+/**
+ * Type representing a function that handles 'OnMessage' events, typically associated with WebSocket communication.
+ *
+ * @type {OnMessageFn}
+ * @param {EventKit} eventKit - The event kit containing a gamepad and an event object.
+ * @returns {any} - The result of handling the event.
+ */
+export type OnMessageFn = (eventKit: EventKit) => any;
+
+/**
+ * Type representing a function that handles 'OnOpen' events, typically associated with WebSocket communication.
+ *
+ * @type {OnOpenFn}
+ * @param {Gamepad} gamepad - The gamepad associated with the 'OnOpen' event.
+ * @returns {any} - The result of handling the event.
+ */
+export type OnOpenFn = (gamepad: Gamepad) => any;
+
 export class TokyoGameClient implements Gamepad {
-  private userId!: number;
-  private teamMates!: Record<number, string>;
-  private eventConsumer: IEventConsumer;
   private conn!: WebSocket;
+  private onMessageFn: OnMessageFn | undefined;
+  private onOpenFn: OnOpenFn | undefined;
 
-  constructor(credentials: IConfig, eventConsumer: IEventConsumer) {
-    this.eventConsumer = eventConsumer;
+  constructor(credentials: IConfig) {
     this.conn = new WebSocket(getWsServerUrl(credentials));
-
-    this.conn.on("open", this.onOpen.bind(this));
-    this.conn.on("message", this.onMessage.bind(this));
+    this.conn.on("open", this.executeOnOpen.bind(this));
+    this.conn.on("message", this.executeOnMessage.bind(this));
     this.conn.on("close", this.onClose.bind(this));
     this.conn.on("error", this.onError.bind(this));
   }
 
-  private onOpen(_: Event) {
-    console.log("Successfully joined the game. Let's hunt !");
+  private executeOnOpen() {
+    if (!this.onOpenFn) return;
+    this.onOpenFn.call(this, this);
   }
 
-  private onMessage(event: Buffer) {
-    const parsed: Payload = JSON.parse(event.toString());
-    switch (parsed.e) {
-      case EventType.ID: {
-        const value = parsed.data as number;
-        this.updateId(value);
-        break;
-      }
-      case EventType.TEAM_NAMES: {
-        const value = parsed.data as Record<number, string>;
-        this.updateTeammates(value);
-        break;
-      }
-      case EventType.STATE: {
-        const value = parsed.data as StateEventData;
-        this.eventConsumer.handleEvent({
-          gamepad: this,
-          userId: this.userId,
-          teamMates: this.teamMates,
-          state: value,
-        });
-        break;
-      }
-    }
+  private executeOnMessage(event: Buffer) {
+    if (!this.onMessageFn) return;
+    const parsed: OnMessageEvent = JSON.parse(event.toString());
+    this.onMessageFn.call(this, {gamepad: this, event: parsed});
   }
 
-  private onClose(event: CloseEvent) {
-    console.log("WebSocket connection closed:", event);
+  private onClose(_event: CloseEvent) {
+    console.log("Disconnected.");
   }
 
   private onError(event: Event) {
@@ -60,25 +54,49 @@ export class TokyoGameClient implements Gamepad {
   }
 
   async rotate(angle: number) {
-    this.conn.send(`{"e":"rotate", "data":${angle}}`);
+    this.conn.send(
+      JSON.stringify({
+        e: "rotate",
+        data: angle,
+      }),
+    );
   }
 
   async throttle(speed: number) {
-    this.conn.send(`{"e":"throttle", "data":${speed}}`);
+    this.conn.send(
+      JSON.stringify({
+        e: "throttle",
+        data: speed,
+      }),
+    );
   }
 
   async fire() {
-    this.conn.send(`{"e":"fire"}`);
+    this.conn.send(
+      JSON.stringify({
+        e: "fire",
+      }),
+    );
   }
 
-  updateId(id: number): void {
-    this.userId = id;
-    console.log(`User ID has been set to ${id}`);
+  /**
+   * Sets the function to handle 'OnMessage' events for the WebSocket communication.
+   *
+   * @param {OnMessageFn} fn - The function to handle 'OnMessage' events.
+   * @returns {void}
+   */
+  setOnMessageFn(fn: OnMessageFn): void {
+    this.onMessageFn = fn;
   }
 
-  updateTeammates(teamMates: Record<number, string>): void {
-    this.teamMates = teamMates;
-    console.log(`Teammates has been updated to ${JSON.stringify(teamMates)}`);
+  /**
+   * Sets the function to handle 'OnOpen' events for the WebSocket communication.
+   *
+   * @param {OnOpenFn} fn - The function to handle 'OnOpen' events.
+   * @returns {void}
+   */
+  setOnOpenFn(fn: OnOpenFn): void {
+    this.onOpenFn = fn;
   }
 
   close() {

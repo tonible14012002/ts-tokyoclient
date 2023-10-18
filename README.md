@@ -11,52 +11,41 @@ To use `tokyoclient-ts`, follow these steps:
 npm i tokyoclient-ts`
 ```
 
-2. Implement your custom EventConsumer
+2. Initialize the Game client with your credentials
 ```js
-// An example implementation for EventConsumer 
-  const customBot = new CustomEventConsumer();
-  customBot.handleEvent = ({gamepad, userId, teamMates, state}) => {
-    gamepad.throttle(1);
-    const angle = getRandomFloat(0.1, 1.0, 1) * 2 * Math.PI;
-    gamepad.rotate(angle);
-    console.log(`[ID ${userId}] Rotating by ${angle} .`);
-    gamepad.fire();
-  }
-```
-
-3. Initialize the game client with your custom event consumer
-```js
-const {
-  TokyoGameClient,
-  CustomEventConsumer,
-  getRandomFloat,
-} = require("tokyoclient-ts");
-
-;(async () => {
   const config = {
-    serverHost: "<replace with your SERVER_HOST>",
-    apiKey: "<replace with your API_KEY>",
-    userName: "example-name",
+    serverHost: "localhost:8080",
+    apiKey: "webuild0",
+    userName: "h3adhunter",
   };
 
-  // An example implementation for EventConsumer
-  const simpleBot = new CustomEventConsumer();
-  simpleBot.handleEvent = ({gamepad, userId, teamMates, state}) => {
+  // Initialize the Game client instance
+  const client = new TokyoGameClient(config);
+```
+
+3. Implement your own callback function to handle onOpen event 
+```js
+  // Define your onMessage callback function
+  client.setOnOpenFn((gamepad) => {
+    console.log("Successfully joined the game.");
+    // Replace your logic here
+  });
+```
+
+4. Implement your own callback function to handle onMessage event 
+```js
+  // Define your onMessage callback function
+  client.setOnMessageFn(({gamepad, event}) => {
     gamepad.throttle(1);
     const angle = getRandomFloat(0.1, 1.0, 1) * 2 * Math.PI;
     gamepad.rotate(angle);
-    console.log(`[ID ${userId}] Rotating by ${angle} .`);
+    console.log(`[rotating] by ${angle} .`);
     gamepad.fire();
-  };
-
-  // Pass into Client constructor
-  const client = new TokyoGameClient(config, simpleBot);
-  ...
-  ...
-})();
+    // Replace with your logic here
+  });
 ```
 
-4. Run your program and observe the client interacting with the Tokyo game server.
+5. Run your program and observe the client interacting with the Tokyo game server.
 
 ## Interfaces
 
